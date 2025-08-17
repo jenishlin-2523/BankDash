@@ -1,8 +1,10 @@
 import React from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid
+  PieChart, Pie, Cell, LineChart, Line, CartesianGrid, AreaChart,Area
 } from "recharts";
+import chipWhite from "../assets/chip.png";
+import chipDark from "../assets/chip.png";
 
 // ---------- Sample data ----------
 const weeklyActivity = [
@@ -16,10 +18,10 @@ const weeklyActivity = [
 ];
 
 const expenseStats = [
-  { name: "Entertainment", value: 30, color: "#4F46E5" }, // indigo-600
-  { name: "Bill Expense", value: 15, color: "#F59E0B" },  // amber-500
-  { name: "Investment", value: 20, color: "#EC4899" },    // pink-500
-  { name: "Others", value: 35, color: "#3B82F6" },        // blue-500
+  { name: "Entertainment", value: 30, color: "#233A66" }, // dark indigo
+  { name: "Bill Expense", value: 15, color: "#F59E0B" },  // orange
+  { name: "Investment", value: 20, color: "#EC4899" },    // magenta
+  { name: "Others", value: 35, color: "#1E3AFC" },        // blue
 ];
 
 const balanceHistory = [
@@ -38,91 +40,109 @@ const tx = [
   { icon: "fa-solid fa-user", bg: "bg-cyan-50", iconColor: "text-cyan-500", title: "Jemi Wilson", date: "21 January 2021", amount: 5400 },
 ];
 
-// ---------- Helpers ----------
-const currency = (n) =>
-  (n < 0 ? "-$" : "+$") + Math.abs(n).toLocaleString();
-
-const CardShell = ({ title, right, children }) => (
-  <div className="bg-white rounded-2xl shadow-sm p-5">
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-[15px] font-semibold text-[#1F2A56]">{title}</h3>
-      {right}
-    </div>
+// ---------- Simple Card ----------
+const CardShell = ({ title, children }) => (
+  <div className="bg-white rounded-2xl shadow-sm p-5 h-full">
+    <h3 className="text-[15px] font-semibold text-[#1F2A56] mb-4">{title}</h3>
     {children}
   </div>
 );
+
+// ---------- Pie label ----------
+const RAD = Math.PI / 180;
+
+const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+  const r = (innerRadius + outerRadius) / 2;
+  const x = cx + r * Math.cos(-midAngle * RAD);
+  const y = cy + r * Math.sin(-midAngle * RAD) - 8; // 🔥 shift upward
+
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="middle"
+      dominantBaseline="left"
+      fill="#fff"
+      fontSize={12}
+    >
+      <tspan fontWeight="700">{`${(percent * 100).toFixed(0)}%`}</tspan>
+      <tspan x={x} dy="14">{name}</tspan>
+    </text>
+  );
+};
 
 // ---------- Page ----------
 const Dashboard = () => {
   return (
     <div className="space-y-6">
-      {/* Top: My Cards + Recent Transaction */}
-      <div className="grid grid-cols-12 gap-6 ">
-        {/* My Cards (span 8) */}
+      {/* Top Section */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* My Cards */}
         <div className="col-span-12 xl:col-span-8">
-          <CardShell
-            title="My Cards"
-            right={<button className="text-xs text-blue-600 hover:underline">See All</button>}
-          >
+          <CardShell title="My Cards">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Primary card */}
-              <div className="relative overflow-hidden rounded-xl text-white p-5"
-                   style={{ background: "linear-gradient(135deg,#5B5BD6 0%, #3A57E8 50%, #2E3BCF 100%)" }}>
-                <div className="flex items-start justify-between">
-                  <div className="text-xs opacity-90">
-                    <p className="uppercase tracking-wide">Balance</p>
-                    <p className="text-2xl font-bold mt-1">$5,756</p>
-                  </div>
-                  <div className="w-9 h-6 bg-white/20 rounded-md" />
+              {/* Primary Card */}
+              <div
+                className="rounded-2xl text-white p-5 relative overflow-hidden"
+                style={{
+                  background:
+                    "linear-gradient(135deg,#5B5BD6 0%, #3A57E8 50%, #2E3BCF 100%)",
+                }}
+              >
+                <div className="absolute top-5 right-5">
+                  <img src={chipWhite} alt="chip" className="w-[42px] h-[32px] object-contain" />
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-6 text-xs opacity-95">
+                <p className="uppercase text-xs opacity-80">Balance</p>
+                <p className="text-2xl font-bold mt-1">$5,756</p>
+
+                <div className="mt-6 flex justify-between text-xs">
                   <div>
-                    <p className="uppercase tracking-wide">Card Holder</p>
+                    <p className="uppercase">Card Holder</p>
                     <p className="text-sm font-semibold">Eddy Cusuma</p>
                   </div>
                   <div>
-                    <p className="uppercase tracking-wide">Valid Thru</p>
+                    <p className="uppercase">Valid Thru</p>
                     <p className="text-sm font-semibold">12/22</p>
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-5 mb-4 h-px bg-white/30" />
+                <div className="flex justify-between items-center">
                   <p className="tracking-widest text-sm">3778 **** **** 1234</p>
-                  {/* fake toggle */}
-                  <div className="w-11 h-6 bg-white/30 rounded-full flex items-center p-1">
-                    <span className="w-4 h-4 bg-white rounded-full translate-x-[20px]" />
+                  <div className="relative flex items-center">
+                    <span className="w-7 h-7 rounded-full bg-white opacity-30"></span>
+                    <span className="w-7 h-7 rounded-full bg-white opacity-30 -ml-3"></span>
                   </div>
                 </div>
               </div>
 
-              {/* Secondary card */}
-              <div className="relative overflow-hidden rounded-xl p-5 bg-white border">
-                <div className="flex items-start justify-between">
-                  <div className="text-xs text-gray-500">
-                    <p className="uppercase tracking-wide">Balance</p>
-                    <p className="text-2xl font-bold text-[#1F2A56] mt-1">$5,756</p>
-                  </div>
-                  <div className="w-9 h-6 bg-gray-200 rounded-md" />
+              {/* Secondary Card */}
+              <div className="rounded-2xl p-5 bg-white border relative">
+                <div className="absolute top-5 right-5">
+                  <img src={chipDark} alt="card chip" className="w-[42px] h-[32px] object-contain" />
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-6 text-xs text-gray-500">
+                <p className="uppercase text-xs text-gray-500">Balance</p>
+                <p className="text-2xl font-bold text-[#1F2A56] mt-1">$5,756</p>
+
+                <div className="mt-6 flex justify-between text-xs text-gray-500">
                   <div>
-                    <p className="uppercase tracking-wide">Card Holder</p>
+                    <p className="uppercase">Card Holder</p>
                     <p className="text-sm font-semibold text-gray-700">Eddy Cusuma</p>
                   </div>
                   <div>
-                    <p className="uppercase tracking-wide">Valid Thru</p>
+                    <p className="uppercase">Valid Thru</p>
                     <p className="text-sm font-semibold text-gray-700">12/22</p>
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between">
-                  <p className="tracking-widest text-sm text-gray-700">
-                    3778 **** **** 1234
-                  </p>
-                  <div className="w-11 h-6 bg-gray-200 rounded-full flex items-center p-1">
-                    <span className="w-4 h-4 bg-white rounded-full" />
+                <div className="mt-5 mb-4 h-px bg-slate-200" />
+                <div className="flex justify-between items-center">
+                  <p className="tracking-widest text-sm text-gray-700">3778 **** **** 1234</p>
+                  <div className="relative flex items-center">
+                    <span className="w-7 h-7 rounded-full bg-gray-400 opacity-70"></span>
+                    <span className="w-7 h-7 rounded-full bg-gray-400 opacity-70 -ml-3"></span>
                   </div>
                 </div>
               </div>
@@ -130,7 +150,7 @@ const Dashboard = () => {
           </CardShell>
         </div>
 
-        {/* Recent Transaction (span 4) */}
+        {/* Recent Transaction */}
         <div className="col-span-12 xl:col-span-4">
           <CardShell title="Recent Transaction">
             <ul className="space-y-3">
@@ -145,9 +165,9 @@ const Dashboard = () => {
                       <p className="text-xs text-gray-500">{t.date}</p>
                     </div>
                   </div>
-                  <div className={`text-sm font-semibold ${t.amount < 0 ? "text-rose-500" : "text-emerald-500"}`}>
+                  <span className={`text-sm font-semibold ${t.amount < 0 ? "text-rose-500" : "text-emerald-500"}`}>
                     {t.amount < 0 ? "-$" + Math.abs(t.amount) : "+$" + t.amount.toLocaleString()}
-                  </div>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -155,109 +175,197 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Middle: Weekly Activity + Expense Statistics */}
+      {/* Middle Section */}
       <div className="grid grid-cols-12 gap-6">
         {/* Weekly Activity */}
         <div className="col-span-12 xl:col-span-8">
-          <CardShell title="Weekly Activity">
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyActivity} barSize={18}>
-                  <CartesianGrid vertical={false} stroke="#EEF2FF" />
-                  <XAxis dataKey="day" tick={{ fill: "#94A3B8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#94A3B8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "#F8FAFC" }} />
-                  <Legend verticalAlign="top" align="center" iconType="circle" wrapperStyle={{ paddingBottom: 16 }} />
-                  <Bar dataKey="deposit" name="Deposit" radius={[6, 6, 0, 0]} fill="#3B82F6" />
-                  <Bar dataKey="withdraw" name="Withdraw" radius={[6, 6, 0, 0]} fill="#14B8A6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardShell>
-        </div>
+  <CardShell title="Weekly Activity">
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={weeklyActivity} barSize={18}>
+        <CartesianGrid vertical={false} stroke="#ffffffff" />
+        <XAxis
+          dataKey="day"
+          tick={{ fill: "#94A3B8", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#94A3B8", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip cursor={{ fill: "#F8FAFC" }} />
+
+        {/* ✅ Legend moved top-right & slightly higher */}
+        <Legend
+          verticalAlign="top"
+          align="right"
+          iconType="circle"
+          wrapperStyle={{
+            fontSize: "12px",
+            paddingRight: "10px",
+            marginTop: "-12px", // pushes legend upward
+          }}
+        />
+
+        <Bar
+          dataKey="deposit"
+          name="Deposit"
+          radius={[6, 6, 0, 0]}
+          fill="#0313f1ff"
+        />
+        <Bar
+          dataKey="withdraw"
+          name="Withdraw"
+          radius={[6, 6, 0, 0]}
+          fill="#14cfb9ff"
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </CardShell>
+</div>
+
 
         {/* Expense Statistics */}
         <div className="col-span-12 xl:col-span-4">
           <CardShell title="Expense Statistics">
-            <div className="h-64 grid place-items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={expenseStats}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {expenseStats.map((s, i) => (
-                      <Cell key={i} fill={s.color} />
-                    ))}
-                  </Pie>
-                  <Legend layout="vertical" verticalAlign="middle" align="right" />
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={expenseStats}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}      // larger pie
+                  innerRadius={0}
+                  paddingAngle={2}
+                  stroke="#FFFFFF"
+                  strokeWidth={6}
+                  label={renderPieLabel}
+                  labelLine={false}
+                  isAnimationActive={false}
+                >
+                  {expenseStats.map((s, i) => (
+                    <Cell key={i} fill={s.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </CardShell>
         </div>
       </div>
 
-      {/* Bottom: Quick Transfer + Balance History */}
+      {/* Bottom Section */}
       <div className="grid grid-cols-12 gap-6">
         {/* Quick Transfer */}
-        <div className="col-span-12 xl:col-span-6">
-          <CardShell title="Quick Transfer">
-            <div className="flex items-center gap-5 overflow-x-auto pb-2">
-              {[
-                { name: "Livia Bator", role: "CEO", img: "https://i.pravatar.cc/60?img=5" },
-                { name: "Randy Press", role: "Director", img: "https://i.pravatar.cc/60?img=12" },
-                { name: "Workman", role: "Designer", img: "https://i.pravatar.cc/60?img=20" },
-              ].map((p) => (
-                <div key={p.name} className="flex items-center gap-3">
-                  <img src={p.img} alt={p.name} className="w-12 h-12 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-semibold text-[#1F2A56]">{p.name}</p>
-                    <p className="text-xs text-gray-500">{p.role}</p>
-                  </div>
-                </div>
-              ))}
-              <button className="ml-auto shrink-0 w-9 h-9 rounded-full bg-gray-100 grid place-items-center">
-                <i className="fa-solid fa-chevron-right text-gray-500"></i>
-              </button>
-            </div>
-
-            <div className="mt-4 flex items-center gap-3">
-              <button className="px-3 py-2 text-sm text-gray-500 bg-gray-50 rounded-lg">Write Amount</button>
-              <input
-                className="px-3 py-2 text-sm bg-gray-50 rounded-lg outline-none"
-                defaultValue="525.50"
+        <div className="col-span-12 xl:col-span-5 flex justify-start">
+  <CardShell
+    title="Quick Transfer"
+    className="w-full max-w-[440px] p-5"
+  >
+    {/* content wrapper */}
+    <div className="w-full">
+      {/* Avatars row + chevron button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          {[
+            { name: "Livia Bator", role: "CEO", img: "https://i.pravatar.cc/80?img=5" },
+            { name: "Randy Press", role: "Director", img: "https://i.pravatar.cc/80?img=12" },
+            { name: "Workman", role: "Designer", img: "https://i.pravatar.cc/80?img=20" },
+          ].map((p, i) => (
+            <div key={p.name} className="mt-7 flex flex-col items-center min-w-[100px]">
+              <img
+                src={p.img}
+                alt={p.name}
+                className="w-14 h-14 rounded-full object-cover"
               />
-              <button className="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2">
-                Send <i className="fa-solid fa-paper-plane"></i>
-              </button>
+              <p className={`mt-2 text-sm ${i === 0 ? "font-semibold text-[#1F2A56]" : "font-semibold text-[#1F2A56]"}`}>
+                {p.name}
+              </p>
+              <p className="text-xs text-indigo-500">{p.role}</p>
             </div>
-          </CardShell>
+          ))}
         </div>
+
+        {/* Round chevron button */}
+        <button
+          type="button"
+          className="shrink-0 w-10 h-10 rounded-full bg-white shadow-md ring-1 ring-slate-100 flex items-center justify-center text-indigo-600"
+          aria-label="Next"
+        >
+          <i className="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      {/* Amount row */}
+      <div className="mt-12 flex items-center gap-3 w-full max-w-[700px]">
+  {/* Label */}
+  <span className="text-sm text-slate-400 whitespace-nowrap">
+    Write Amount
+  </span>
+
+  {/* Input with overlay button */}
+  <div className="relative flex-1">
+    <input
+      className="w-full px-5 py-2.5 pr-24 text-sm bg-slate-100 text-slate-600 rounded-full outline-none text-center"
+      defaultValue="525.50"
+    />
+
+    <button
+      className="absolute right-1 top-1/2 -translate-y-1/2 px-6 py-2.5 rounded-full text-white flex items-center gap-2 shadow-lg"
+      style={{ background: "linear-gradient(135deg,#3144FF 0%,#1A2BFF 100%)" }}
+    >
+      <span>Send</span>
+      <i className="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+    </div>
+  </CardShell>
+</div>
+
+
+
 
         {/* Balance History */}
-        <div className="col-span-12 xl:col-span-6">
-          <CardShell title="Balance History">
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={balanceHistory} margin={{ left: 4, right: 12, top: 10, bottom: 0 }}>
-                  <CartesianGrid vertical={false} stroke="#EEF2FF" />
-                  <XAxis dataKey="m" tick={{ fill: "#94A3B8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#94A3B8", fontSize: 12 }} domain={[0, 800]} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="v" stroke="#3B82F6" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardShell>
-        </div>
+<div className="col-span-12 xl:col-span-6">
+  <CardShell title="Balance History">
+    <ResponsiveContainer width="100%" height={250}>
+      <AreaChart data={balanceHistory} margin={{ left: 4, right: 12, top: 10 }}>
+        <defs>
+          <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4} />
+            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} stroke="#EEF2FF" />
+        <XAxis
+          dataKey="m"
+          tick={{ fill: "#94A3B8", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#94A3B8", fontSize: 12 }}
+          domain={[0, 800]}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip />
+        <Area
+          type="monotone"
+          dataKey="v"
+          stroke="#3B82F6"
+          strokeWidth={3}
+          fill="url(#colorBlue)"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  </CardShell>
+</div>
+
       </div>
     </div>
   );
